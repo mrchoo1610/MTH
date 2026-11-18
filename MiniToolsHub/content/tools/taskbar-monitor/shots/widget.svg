@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 420" font-family="Segoe UI, Inter, Arial, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1b1f3a"/>
+      <stop offset="1" stop-color="#2a1a47"/>
+    </linearGradient>
+  </defs>
+  <rect width="960" height="420" fill="url(#bg)"/>
+
+  <!-- flyout card -->
+  <g transform="translate(470 40)">
+    <rect width="440" height="250" rx="16" fill="#161920" stroke="#2A303C"/>
+    <text x="22" y="36" fill="#E8EAF0" font-size="17" font-weight="600">Hardware</text>
+    <g font-size="13" fill="#8B93A7">
+      <text x="22" y="68">CPU</text><text x="22" y="96">RAM</text><text x="22" y="124">GPU</text><text x="22" y="152">VRAM</text>
+    </g>
+    <g>
+      <rect x="80" y="58" width="250" height="10" rx="5" fill="#242934"/><rect x="80" y="58" width="85" height="10" rx="5" fill="#6D5EF6"/>
+      <rect x="80" y="86" width="250" height="10" rx="5" fill="#242934"/><rect x="80" y="86" width="140" height="10" rx="5" fill="#6D5EF6"/>
+      <rect x="80" y="114" width="250" height="10" rx="5" fill="#242934"/><rect x="80" y="114" width="190" height="10" rx="5" fill="#F5A524"/>
+      <rect x="80" y="142" width="250" height="10" rx="5" fill="#242934"/><rect x="80" y="142" width="215" height="10" rx="5" fill="#EF4444"/>
+    </g>
+    <g font-size="13" fill="#E8EAF0" text-anchor="end">
+      <text x="418" y="68">34%  62&#176;C</text><text x="418" y="96">18.2 / 32 GB</text><text x="418" y="124">76%  68&#176;C</text><text x="418" y="152">10.4 / 12 GB</text>
+    </g>
+    <line x1="22" y1="176" x2="418" y2="176" stroke="#2A303C"/>
+    <text x="22" y="198" fill="#8B93A7" font-size="12">Top RAM</text>
+    <g font-size="13" fill="#E8EAF0">
+      <text x="22" y="220">Blender</text><text x="418" y="220" text-anchor="end">6.1 GB</text>
+      <text x="22" y="240">Chrome</text><text x="418" y="240" text-anchor="end">2.3 GB</text>
+    </g>
+  </g>
+
+  <!-- taskbar -->
+  <rect x="0" y="340" width="960" height="80" fill="#10131a" opacity=".96"/>
+  <line x1="0" y1="340" x2="960" y2="340" stroke="#2A303C"/>
+  <g fill="#2A303C"><rect x="24" y="360" width="40" height="40" rx="8"/><rect x="76" y="360" width="40" height="40" rx="8"/><rect x="128" y="360" width="40" height="40" rx="8"/></g>
+
+  <!-- the widget strip -->
+  <g transform="translate(300 354)">
+    <rect width="560" height="52" rx="12" fill="#ffffff" fill-opacity=".1" stroke="#ffffff" stroke-opacity=".25"/>
+    <g font-size="11" fill="#8B93A7">
+      <text x="18" y="20">CPU</text><text x="128" y="20">RAM</text><text x="258" y="20">GPU</text><text x="368" y="20">VRAM</text><text x="478" y="20">DISK</text>
+    </g>
+    <g font-size="14" font-weight="600" fill="#E8EAF0">
+      <text x="18" y="40">34% 62&#176;</text>
+      <text x="128" y="40">18.2 GB</text>
+      <text x="258" y="40" fill="#F5A524">76% 68&#176;</text>
+      <text x="368" y="40" fill="#EF4444">10.4 GB</text>
+      <text x="478" y="40">120 MB/s</text>
+    </g>
+  </g>
+  <text x="936" y="326" text-anchor="end" fill="#8B93A7" font-size="11" opacity=".8">Illustration</text>
+</svg>

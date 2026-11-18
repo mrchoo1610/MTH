@@ -1,0 +1,43 @@
+{
+  "appId": "taskbar-monitor",
+  "order": 1,
+  "name": { "vi": "Taskbar Hardware Monitor", "en": "Taskbar Hardware Monitor" },
+  "tagline": {
+    "vi": "Theo dõi CPU, RAM, GPU, VRAM và ổ đĩa ngay trên thanh Taskbar",
+    "en": "Watch CPU, RAM, GPU, VRAM and disk right on your taskbar"
+  },
+  "features": {
+    "vi": [
+      "Widget kính mờ gắn trên Taskbar, luôn hiển thị nhưng không chắn việc của bạn",
+      "CPU (tải và nhiệt độ), RAM, GPU NVIDIA, VRAM và tốc độ đọc/ghi ổ đĩa theo thời gian thực",
+      "VRAM đầy là nguyên nhân hay gặp khiến render 3D bị crash: nhìn thấy trước để xử lý kịp",
+      "Màu cảnh báo tự động: bình thường, vàng từ 75%, đỏ từ 90% hoặc nhiệt độ trên 82°C",
+      "Bấm vào để mở thẻ chi tiết với danh sách tiến trình ngốn RAM nhất",
+      "Kéo thả tự do, khóa vị trí, chỉnh độ trong suốt và tần suất làm mới",
+      "Siêu nhẹ: khoảng 30-50 MB RAM và dưới 0,1% CPU"
+    ],
+    "en": [
+      "Frosted-glass widget docked on the taskbar: always visible, never in the way",
+      "Real-time CPU (load and temperature), RAM, NVIDIA GPU, VRAM and disk read/write throughput",
+      "Running out of VRAM is a classic cause of 3D render crashes: see it coming in time",
+      "Automatic color alerts: normal, amber from 75%, red from 90% or above 82°C",
+      "Click for a detail card listing the processes using the most RAM",
+      "Drag it anywhere, lock its position, tune opacity and refresh rate",
+      "Very light: roughly 30-50 MB of RAM and under 0.1% CPU"
+    ]
+  },
+  "requirements": {
+    "vi": "Windows 10/11 x64, .NET 10 Desktop Runtime. Số liệu GPU/VRAM dùng card NVIDIA; chạy bằng quyền Administrator để mở thêm cảm biến phần cứng chuyên sâu.",
+    "en": "Windows 10/11 x64, .NET 10 Desktop Runtime. GPU/VRAM metrics target NVIDIA cards; run as Administrator to unlock deeper hardware sensors."
+  },
+  "accent": "#38BDF8",
+  "shots": [
+    {
+      "file": { "vi": "widget.svg", "en": "widget.svg" },
+      "alt": {
+        "vi": "Minh họa widget trên Taskbar và thẻ chi tiết phần cứng",
+        "en": "Illustration of the taskbar widget and the hardware detail card"
+      }
+    }
+  ]
+}

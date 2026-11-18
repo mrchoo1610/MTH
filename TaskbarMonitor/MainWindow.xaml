@@ -1,0 +1,326 @@
+<Window x:Class="TaskbarMonitor.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Hardware Monitor"
+        Icon="app.ico"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        SizeToContent="WidthAndHeight"
+        ResizeMode="NoResize"
+        Loaded="Window_Loaded"
+        Closing="Window_Closing"
+        MouseLeftButtonDown="Window_MouseLeftButtonDown"
+        MouseLeftButtonUp="Window_MouseLeftButtonUp"
+        MouseRightButtonUp="Window_MouseRightButtonUp"
+        MouseMove="Window_MouseMove">
+
+    <Window.Resources>
+        <Style x:Key="MetricLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,4,0"/>
+        </Style>
+        <Style x:Key="MetricValueStyle" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Consolas, Segoe UI"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Foreground" Value="#F8FAFC"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="MetricTempStyle" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Consolas, Segoe UI"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Foreground" Value="#94A3B8"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="4,0,0,0"/>
+        </Style>
+        <Style x:Key="DividerStyle" TargetType="Rectangle">
+            <Setter Property="Width" Value="1"/>
+            <Setter Property="Height" Value="12"/>
+            <Setter Property="Fill" Value="#334155"/>
+            <Setter Property="Margin" Value="7,0,7,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="SettingSectionTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#64748B"/>
+            <Setter Property="Margin" Value="0,8,0,4"/>
+        </Style>
+        <Style x:Key="SettingCheckBox" TargetType="CheckBox">
+            <Setter Property="Foreground" Value="#E2E8F0"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Margin" Value="0,3"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style x:Key="PillBtn" TargetType="Button">
+            <Setter Property="Background" Value="#1E293B"/>
+            <Setter Property="Foreground" Value="#CBD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#334155"/>
+            <Setter Property="Padding" Value="7,3"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="0,0,4,0"/>
+        </Style>
+        <Style x:Key="ActionBtn" TargetType="Button">
+            <Setter Property="Background" Value="#1E293B"/>
+            <Setter Property="Foreground" Value="#E2E8F0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#334155"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="0,3"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <!-- MAIN BAR WIDGET -->
+        <Border x:Name="MainBorder"
+                Background="#E612141A"
+                BorderBrush="#2B303C"
+                BorderThickness="1"
+                CornerRadius="6"
+                Padding="8,4"
+                SnapsToDevicePixels="True"
+                Cursor="Hand"
+                ToolTip="Left-Click: Telemetry Flyout • Right-Click: Settings">
+
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <!-- Tiny Drag Indicator -->
+                <TextBlock Text="⋮" Foreground="#475569" FontSize="12" Margin="0,0,5,0" VerticalAlignment="Center" ToolTip="Drag to move"/>
+
+                <!-- CPU -->
+                <StackPanel x:Name="CpuPanel" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="CPU" Foreground="#38BDF8" Style="{StaticResource MetricLabelStyle}"/>
+                    <TextBlock x:Name="TxtCpuUsage" Text="--%" Style="{StaticResource MetricValueStyle}"/>
+                    <TextBlock x:Name="TxtCpuTemp" Text="" Style="{StaticResource MetricTempStyle}"/>
+                </StackPanel>
+
+                <!-- Divider -->
+                <Rectangle x:Name="DivRam" Style="{StaticResource DividerStyle}"/>
+
+                <!-- RAM -->
+                <StackPanel x:Name="RamPanel" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="RAM" Foreground="#A78BFA" Style="{StaticResource MetricLabelStyle}"/>
+                    <TextBlock x:Name="TxtRamUsage" Text="-- / --" Style="{StaticResource MetricValueStyle}"/>
+                </StackPanel>
+
+                <!-- Divider -->
+                <Rectangle x:Name="DivGpu" Style="{StaticResource DividerStyle}"/>
+
+                <!-- GPU -->
+                <StackPanel x:Name="GpuPanel" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="GPU" Foreground="#34D399" Style="{StaticResource MetricLabelStyle}"/>
+                    <TextBlock x:Name="TxtGpuUsage" Text="--%" Style="{StaticResource MetricValueStyle}"/>
+                    <TextBlock x:Name="TxtGpuTemp" Text="" Style="{StaticResource MetricTempStyle}"/>
+                </StackPanel>
+
+                <!-- Divider -->
+                <Rectangle x:Name="DivVram" Style="{StaticResource DividerStyle}"/>
+
+                <!-- VRAM -->
+                <StackPanel x:Name="VramPanel" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="VRAM" Foreground="#F472B6" Style="{StaticResource MetricLabelStyle}"/>
+                    <TextBlock x:Name="TxtVramUsage" Text="-- / --" Style="{StaticResource MetricValueStyle}"/>
+                </StackPanel>
+
+                <!-- Divider -->
+                <Rectangle x:Name="DivDisk" Style="{StaticResource DividerStyle}"/>
+
+                <!-- DISK -->
+                <StackPanel x:Name="DiskPanel" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="DISK" Foreground="#FBBF24" Style="{StaticResource MetricLabelStyle}"/>
+                    <TextBlock x:Name="TxtDiskSpeed" Text="-- MB/s" Style="{StaticResource MetricValueStyle}"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- FLYOUT POPUP (LEFT-CLICK: DETAILS & PROCESSES) -->
+        <Popup x:Name="FlyoutPopup"
+               PlacementTarget="{Binding ElementName=MainBorder}"
+               Placement="Top"
+               StaysOpen="False"
+               AllowsTransparency="True"
+               PopupAnimation="Fade"
+               VerticalOffset="-6">
+            <Border Background="#161820"
+                    BorderBrush="#334155"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="14"
+                    Width="320"
+                    SnapsToDevicePixels="True">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="16" ShadowDepth="4" Opacity="0.5" Color="#000000"/>
+                </Border.Effect>
+                <StackPanel>
+                    <!-- Header -->
+                    <Grid Margin="0,0,0,10">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="HARDWARE TELEMETRY" FontWeight="Bold" FontSize="11" Foreground="#94A3B8"/>
+                                <TextBlock Text="v1.1.0" FontSize="9" Foreground="#64748B" Margin="6,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                            </StackPanel>
+                            <TextBlock x:Name="TxtGpuModel" Text="NVIDIA GeForce" FontSize="12" FontWeight="SemiBold" Foreground="#34D399" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock x:Name="TxtCpuModel" Text="CPU Processor" FontSize="11" Foreground="#64748B" TextTrimming="CharacterEllipsis"/>
+                        </StackPanel>
+                        <TextBlock x:Name="TxtAdminBadge" Text="USER" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                   FontSize="9" FontWeight="Bold" Padding="5,2" Background="#1E293B" Foreground="#94A3B8"/>
+                    </Grid>
+
+                    <Separator Background="#282D39" Margin="0,0,0,10"/>
+
+                    <!-- Detailed Bars -->
+                    <!-- CPU -->
+                    <Grid Margin="0,2">
+                        <TextBlock Text="CPU Load" Foreground="#94A3B8" FontSize="11"/>
+                        <TextBlock x:Name="TxtFlyoutCpu" Text="0%" HorizontalAlignment="Right" Foreground="#38BDF8" FontWeight="SemiBold" FontSize="11"/>
+                    </Grid>
+                    <ProgressBar x:Name="PbCpu" Height="4" Background="#1E293B" Foreground="#38BDF8" BorderThickness="0" Margin="0,2,0,8"/>
+
+                    <!-- RAM -->
+                    <Grid Margin="0,2">
+                        <TextBlock Text="RAM (Physical)" Foreground="#94A3B8" FontSize="11"/>
+                        <TextBlock x:Name="TxtFlyoutRam" Text="0 GB / 0 GB" HorizontalAlignment="Right" Foreground="#A78BFA" FontWeight="SemiBold" FontSize="11"/>
+                    </Grid>
+                    <ProgressBar x:Name="PbRam" Height="4" Background="#1E293B" Foreground="#A78BFA" BorderThickness="0" Margin="0,2,0,8"/>
+
+                    <!-- GPU -->
+                    <Grid Margin="0,2">
+                        <TextBlock Text="GPU 3D / CUDA" Foreground="#94A3B8" FontSize="11"/>
+                        <TextBlock x:Name="TxtFlyoutGpu" Text="0%" HorizontalAlignment="Right" Foreground="#34D399" FontWeight="SemiBold" FontSize="11"/>
+                    </Grid>
+                    <ProgressBar x:Name="PbGpu" Height="4" Background="#1E293B" Foreground="#34D399" BorderThickness="0" Margin="0,2,0,8"/>
+
+                    <!-- VRAM -->
+                    <Grid Margin="0,2">
+                        <TextBlock Text="VRAM (3D Rendering)" Foreground="#94A3B8" FontSize="11"/>
+                        <TextBlock x:Name="TxtFlyoutVram" Text="0 GB / 0 GB" HorizontalAlignment="Right" Foreground="#F472B6" FontWeight="SemiBold" FontSize="11"/>
+                    </Grid>
+                    <ProgressBar x:Name="PbVram" Height="4" Background="#1E293B" Foreground="#F472B6" BorderThickness="0" Margin="0,2,0,8"/>
+
+                    <!-- Disk -->
+                    <Grid Margin="0,2,0,10">
+                        <TextBlock Text="Disk Read / Write" Foreground="#94A3B8" FontSize="11"/>
+                        <TextBlock x:Name="TxtFlyoutDisk" Text="R: 0 MB/s | W: 0 MB/s" HorizontalAlignment="Right" Foreground="#FBBF24" FontWeight="SemiBold" FontSize="11"/>
+                    </Grid>
+
+                    <Separator Background="#282D39" Margin="0,0,0,8"/>
+
+                    <!-- Top Processes for 3D/Code -->
+                    <TextBlock Text="TOP MEMORY PROCESSES" FontWeight="Bold" FontSize="10" Foreground="#64748B" Margin="0,0,0,4"/>
+                    <ItemsControl x:Name="ProcessList">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,2">
+                                    <TextBlock Text="{Binding Name}" Foreground="#E2E8F0" FontSize="11" TextTrimming="CharacterEllipsis" MaxWidth="210"/>
+                                    <TextBlock HorizontalAlignment="Right" Foreground="#A78BFA" FontSize="11" FontFamily="Consolas">
+                                        <TextBlock.Text>
+                                            <Binding Path="MemoryMb" StringFormat="{}{0} MB"/>
+                                        </TextBlock.Text>
+                                    </TextBlock>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <Button Content="Open Windows Task Manager" Margin="0,10,0,0" Padding="0,4"
+                            Background="#1E293B" Foreground="#94A3B8" BorderThickness="0"
+                            Cursor="Hand" Click="MenuOpenTaskManager_Click"/>
+                </StackPanel>
+            </Border>
+        </Popup>
+
+        <!-- SETTINGS POPUP (RIGHT-CLICK: SETTINGS & CONFIG) -->
+        <Popup x:Name="SettingsPopup"
+               PlacementTarget="{Binding ElementName=MainBorder}"
+               Placement="Top"
+               StaysOpen="False"
+               AllowsTransparency="True"
+               PopupAnimation="Fade"
+               VerticalOffset="-6">
+            <Border Background="#161820"
+                    BorderBrush="#334155"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="14"
+                    Width="310"
+                    SnapsToDevicePixels="True">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="16" ShadowDepth="4" Opacity="0.5" Color="#000000"/>
+                </Border.Effect>
+                <StackPanel>
+                    <!-- Settings Header -->
+                    <Grid Margin="0,0,0,8">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="⚙" FontSize="13" Foreground="#38BDF8" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="SETTINGS" FontWeight="Bold" FontSize="12" Foreground="#F1F5F9" VerticalAlignment="Center"/>
+                            <TextBlock Text="v1.1.0" FontSize="10" Foreground="#64748B" Margin="8,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                        </StackPanel>
+                        <TextBlock Text="✕" FontSize="12" Foreground="#64748B" HorizontalAlignment="Right" Cursor="Hand"
+                                   MouseLeftButtonUp="BtnCloseSettings_Click" ToolTip="Close"/>
+                    </Grid>
+
+                    <Separator Background="#282D39" Margin="0,0,0,6"/>
+
+                    <!-- Metrics Toggle Section -->
+                    <TextBlock Text="SHOW METRICS" Style="{StaticResource SettingSectionTitle}"/>
+                    <CheckBox x:Name="ChkCpu" Content="CPU (Usage &amp; Temp)" Style="{StaticResource SettingCheckBox}" Click="ChkMetric_Click"/>
+                    <CheckBox x:Name="ChkRam" Content="RAM (Physical Used/Total)" Style="{StaticResource SettingCheckBox}" Click="ChkMetric_Click"/>
+                    <CheckBox x:Name="ChkGpu" Content="GPU (NVIDIA Load &amp; Temp)" Style="{StaticResource SettingCheckBox}" Click="ChkMetric_Click"/>
+                    <CheckBox x:Name="ChkVram" Content="VRAM (3D Rendering)" Style="{StaticResource SettingCheckBox}" Click="ChkMetric_Click"/>
+                    <CheckBox x:Name="ChkDisk" Content="Disk I/O Throughput" Style="{StaticResource SettingCheckBox}" Click="ChkMetric_Click"/>
+
+                    <!-- Appearance Section -->
+                    <TextBlock Text="OPACITY" Style="{StaticResource SettingSectionTitle}"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,2,0,4">
+                        <Button Content="60%" Tag="0.6" Style="{StaticResource PillBtn}" Click="BtnOpacity_Click"/>
+                        <Button Content="75%" Tag="0.75" Style="{StaticResource PillBtn}" Click="BtnOpacity_Click"/>
+                        <Button Content="90%" Tag="0.9" Style="{StaticResource PillBtn}" Click="BtnOpacity_Click"/>
+                        <Button Content="100%" Tag="1.0" Style="{StaticResource PillBtn}" Click="BtnOpacity_Click"/>
+                    </StackPanel>
+
+                    <!-- Refresh Rate Section -->
+                    <TextBlock Text="REFRESH RATE" Style="{StaticResource SettingSectionTitle}"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,2,0,4">
+                        <Button Content="500 ms" Tag="500" Style="{StaticResource PillBtn}" Click="BtnRefreshRate_Click"/>
+                        <Button Content="1000 ms" Tag="1000" Style="{StaticResource PillBtn}" Click="BtnRefreshRate_Click"/>
+                        <Button Content="2000 ms" Tag="2000" Style="{StaticResource PillBtn}" Click="BtnRefreshRate_Click"/>
+                    </StackPanel>
+
+                    <!-- Behavior Section -->
+                    <TextBlock Text="SYSTEM &amp; BEHAVIOR" Style="{StaticResource SettingSectionTitle}"/>
+                    <CheckBox x:Name="ChkLockPosition" Content="🔒 Lock Position (Prevent Drag)" Style="{StaticResource SettingCheckBox}" Click="ChkLockPosition_Click"/>
+                    <CheckBox x:Name="ChkAutoStart" Content="🚀 Start with Windows" Style="{StaticResource SettingCheckBox}" Click="ChkAutoStart_Click"/>
+
+                    <Grid Margin="0,6,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="6"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" Content="📌 Snap to Taskbar" Style="{StaticResource ActionBtn}" Click="BtnSnapTaskbar_Click"/>
+                        <Button Grid.Column="2" Content="🛡 Run as Admin" Style="{StaticResource ActionBtn}" Click="BtnRunAsAdmin_Click"/>
+                    </Grid>
+
+                    <Separator Background="#282D39" Margin="0,8,0,6"/>
+
+                    <!-- Footer Actions -->
+                    <Grid>
+                        <Button Content="Open Task Manager" HorizontalAlignment="Left" Padding="6,3" FontSize="10"
+                                Background="Transparent" Foreground="#64748B" BorderThickness="0" Cursor="Hand" Click="MenuOpenTaskManager_Click"/>
+                        <Button Content="❌ Exit App" HorizontalAlignment="Right" Padding="6,3" FontSize="10"
+                                Background="Transparent" Foreground="#F87171" BorderThickness="0" Cursor="Hand" Click="BtnExit_Click"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Popup>
+    </Grid>
+</Window>

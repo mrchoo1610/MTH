@@ -1,0 +1,35 @@
+<Window x:Class="DiskCleaner.UI.DialogWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent" ResizeMode="NoResize"
+        ShowInTaskbar="False" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterOwner"
+        FontFamily="{StaticResource UiFont}" FontSize="14" UseLayoutRounding="True" TextElement.Foreground="{StaticResource TextBrush}">
+    <Border Margin="20" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}"
+            BorderThickness="1" CornerRadius="{StaticResource CardRadius}" Effect="{StaticResource CardShadow}"
+            MinWidth="380" MaxWidth="560">
+        <Grid Margin="24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <DockPanel Margin="0,0,0,14">
+                <Border x:Name="IconBox" DockPanel.Dock="Left" Width="36" Height="36" CornerRadius="18" Margin="0,0,14,0"
+                        Background="{StaticResource AccentSoftBrush}" VerticalAlignment="Center">
+                    <TextBlock x:Name="IconText" Style="{StaticResource IconText}" FontSize="16" VerticalAlignment="Center"
+                               Foreground="{StaticResource AccentHoverBrush}"/>
+                </Border>
+                <TextBlock x:Name="TitleText" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" TextWrapping="Wrap"/>
+            </DockPanel>
+            <ScrollViewer x:Name="MessageScroll" Grid.Row="1" MaxHeight="360" VerticalScrollBarVisibility="Auto" Margin="0,0,0,20">
+                <TextBlock x:Name="MessageText" TextWrapping="Wrap" Foreground="{StaticResource TextMutedBrush}" LineHeight="20"/>
+            </ScrollViewer>
+            <ContentPresenter x:Name="ExtraHost" Grid.Row="2" Margin="0,0,0,20"/>
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="SecondaryButton" MinWidth="96" Margin="0,0,10,0" IsCancel="True" Click="OnSecondary"/>
+                <Button x:Name="PrimaryButton" MinWidth="96" Style="{StaticResource PrimaryButton}" IsDefault="True" Click="OnPrimary"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

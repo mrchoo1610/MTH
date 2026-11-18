@@ -1,0 +1,11 @@
+@page "/error/{code:int?}"
+@model ErrorModel
+
+<section class="section page-head">
+    <div class="container narrow center">
+        <p class="big-code">@Model.Code</p>
+        <h1>@Model.L("error.title")</h1>
+        <p class="muted">@Model.Message</p>
+        <p><a class="btn btn-primary" href="/@Model.Lang">@Model.L("error.home")</a></p>
+    </div>
+</section>

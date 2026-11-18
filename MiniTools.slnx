@@ -1,0 +1,13 @@
+<Solution>
+  <Project Path="DiskCleaner/src/DiskCleaner/DiskCleaner.csproj" />
+  <Project Path="DiskCleaner/tests/DiskCleaner.Tests/DiskCleaner.Tests.csproj" />
+  <Project Path="TaskbarMonitor/TaskbarMonitor.csproj" />
+  <Project Path="Shared/MiniTools.Contracts/MiniTools.Contracts.csproj" />
+  <Project Path="Shared/tests/MiniTools.Contracts.Tests/MiniTools.Contracts.Tests.csproj" />
+  <Project Path="Shared/MiniTools.Updater/MiniTools.Updater.csproj" />
+  <Project Path="Shared/MiniTools.UpdateHelper/MiniTools.UpdateHelper.csproj" />
+  <Project Path="Shared/tests/MiniTools.Updater.Tests/MiniTools.Updater.Tests.csproj" />
+  <Project Path="MiniToolsHub/src/MiniToolsHub.Server/MiniToolsHub.Server.csproj" />
+  <Project Path="MiniToolsHub/tests/MiniToolsHub.Server.Tests/MiniToolsHub.Server.Tests.csproj" />
+  <Project Path="scripts/tools/ManifestTool/ManifestTool.csproj" />
+</Solution>

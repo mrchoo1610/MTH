@@ -1,0 +1,79 @@
+@{
+    var m = (HubPageModel)ViewContext.ViewData.Model!;
+    var lang = m.Lang;
+    var other = Loc.Other(lang);
+    var suffix = ViewData["PathSuffix"] as string ?? "";
+    var title = ViewData["Title"] as string ?? m.L("site.name");
+    var fullTitle = title == m.L("site.name") ? title : $"{title} | {m.L("site.name")}";
+    var desc = ViewData["Description"] as string ?? m.L("site.description");
+    var canonical = $"{m.BaseUrl}/{lang}{suffix}";
+    var ogImage = ViewData["OgImage"] as string ?? m.BaseUrl + "/img/og.png";
+    var noIndex = ViewData["NoIndex"] is true;
+}
+<!doctype html>
+<html lang="@lang">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@fullTitle</title>
+    <meta name="description" content="@desc" />
+    <meta name="theme-color" content="#0E1014" />
+    @if (noIndex)
+    {
+        <meta name="robots" content="noindex" />
+    }
+    else
+    {
+        <link rel="canonical" href="@canonical" />
+        <link rel="alternate" hreflang="vi" href="@($"{m.BaseUrl}/vi{suffix}")" />
+        <link rel="alternate" hreflang="en" href="@($"{m.BaseUrl}/en{suffix}")" />
+        <link rel="alternate" hreflang="x-default" href="@($"{m.BaseUrl}/en{suffix}")" />
+    }
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="@m.L("site.name")" />
+    <meta property="og:title" content="@fullTitle" />
+    <meta property="og:description" content="@desc" />
+    <meta property="og:url" content="@canonical" />
+    <meta property="og:image" content="@ogImage" />
+    <meta property="og:locale" content="@(lang == "vi" ? "vi_VN" : "en_US")" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" type="image/svg+xml" href="~/img/logo.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <header class="topbar">
+        <div class="container topbar-inner">
+            <a class="brand" href="/@lang" aria-label="@m.L("site.name")">
+                <img src="~/img/logo.svg" alt="" width="32" height="32" />
+                <span>@m.L("site.name")</span>
+            </a>
+            <nav class="nav" aria-label="Main">
+                <a href="/@lang#tools">@m.L("nav.tools")</a>
+                <a href="/@lang/changelog">@m.L("nav.changelog")</a>
+                <div class="lang" role="group" aria-label="@m.L("nav.language")">
+                    <a class="@(lang == "vi" ? "on" : "")" href="/vi@(suffix)" hreflang="vi" lang="vi">VI</a>
+                    <a class="@(lang == "en" ? "on" : "")" href="/en@(suffix)" hreflang="en" lang="en">EN</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        @RenderBody()
+    </main>
+
+    <footer class="footer">
+        <div class="container footer-inner">
+            <div>
+                <div class="brand small"><img src="~/img/logo.svg" alt="" width="24" height="24" /><span>@m.L("site.name")</span></div>
+                <p class="muted">@m.L("footer.text")</p>
+            </div>
+            <p class="muted">@m.L("footer.verify")</p>
+        </div>
+    </footer>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+</body>
+</html>

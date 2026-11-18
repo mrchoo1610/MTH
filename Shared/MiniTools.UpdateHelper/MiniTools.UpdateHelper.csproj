@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>MiniTools.UpdateHelper</RootNamespace>
+    <AssemblyName>MiniTools.UpdateHelper</AssemblyName>
+    <Version>1.0.0</Version>
+    <Product>MiniTools UpdateHelper</Product>
+    <Company>IndieMiniTools</Company>
+
+    <!-- Framework-dependent single file: one small exe next to the app, no extra dll/json to copy. -->
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>false</SelfContained>
+    <DebugType Condition="'$(Configuration)' == 'Release'">none</DebugType>
+  </PropertyGroup>
+
+</Project>

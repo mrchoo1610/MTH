@@ -1,0 +1,44 @@
+{
+  "appId": "disk-cleaner",
+  "order": 2,
+  "name": { "vi": "Disk Cleaner", "en": "Disk Cleaner" },
+  "tagline": {
+    "vi": "Dọn ổ C an toàn: quét thử trước, xóa sau khi bạn xác nhận",
+    "en": "Safe C: drive cleanup: scan first, delete only after you confirm"
+  },
+  "features": {
+    "vi": [
+      "Chỉ xóa theo whitelist: temp, cache trình duyệt, cache công cụ lập trình, crash dump, Thùng rác",
+      "Luôn quét thử (dry-run) trước, số liệu giải phóng khớp với lúc xóa thật",
+      "SafetyGuard chặn Windows, Program Files, Documents, Desktop, OneDrive và thư mục người dùng",
+      "Phân tích dung lượng dạng cây thư mục để tìm nơi ngốn chỗ nhất",
+      "Thêm thư mục cache của bất kỳ ứng dụng nào (ví dụ CapCut) thành rule tùy chỉnh, có kiểm tra an toàn",
+      "Tìm file lớn và chỉ chuyển vào Thùng rác, có thể khôi phục",
+      "Giao diện tối hiện đại, song ngữ VI/EN, đổi ngôn ngữ tức thì"
+    ],
+    "en": [
+      "Whitelist-only deletion: temp files, browser caches, developer tool caches, crash dumps, Recycle Bin",
+      "Always dry-runs first, and the preview matches what a real clean frees",
+      "SafetyGuard blocks Windows, Program Files, Documents, Desktop, OneDrive and your user folder",
+      "Folder-tree space analyzer to see what takes the most room",
+      "Turn any app's cache folder (for example CapCut) into a custom rule, with safety checks",
+      "Find large files and send them to the Recycle Bin only, so you can restore them",
+      "Modern dark UI in Vietnamese and English, switch instantly"
+    ]
+  },
+  "requirements": {
+    "vi": "Windows 10/11 x64, .NET 10 Desktop Runtime. Không cần quyền Administrator (chỉ một vài rule hệ thống mới cần).",
+    "en": "Windows 10/11 x64, .NET 10 Desktop Runtime. No administrator rights needed (only a few system rules ask for them)."
+  },
+  "accent": "#6D5EF6",
+  "shots": [
+    {
+      "file": { "vi": "overview-vi.png", "en": "overview-en.png" },
+      "alt": { "vi": "Tổng quan ổ đĩa và tiềm năng giải phóng", "en": "Disk overview and potential space to free" }
+    },
+    {
+      "file": { "vi": "clean-vi.png", "en": "clean-en.png" },
+      "alt": { "vi": "Danh sách rule dọn dẹp với công tắc bật/tắt", "en": "Cleanup rules with on/off switches" }
+    }
+  ]
+}

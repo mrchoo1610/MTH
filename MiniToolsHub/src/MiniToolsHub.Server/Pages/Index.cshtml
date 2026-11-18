@@ -1,0 +1,71 @@
+@page "/{lang:regex(^(vi|en)$)}"
+@model IndexModel
+@{
+    var lang = Model.Lang;
+}
+
+<section class="hero">
+    <div class="container hero-inner">
+        <span class="pill">@Model.L("hero.badge")</span>
+        <h1>@Model.L("hero.title")</h1>
+        <p class="lead">@Model.L("hero.sub")</p>
+        <div class="hero-actions">
+            <a class="btn btn-primary" href="#tools">@Model.L("hero.cta")</a>
+            <a class="btn btn-ghost" href="#trust">@Model.L("hero.cta2")</a>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="tools">
+    <div class="container">
+        <h2>@Model.L("tools.title")</h2>
+        <p class="muted section-sub">@Model.L("tools.sub")</p>
+        <div class="grid">
+            @foreach (var c in Model.Cards)
+            {
+                var t = c.Tool;
+                <article class="card tool-card" style="--accent-tool:@t.Meta.Accent">
+                    <a class="card-head" href="/@lang/tools/@t.AppId">
+                        <img class="tool-icon" src="/media/@t.AppId/icon.png" alt="" width="56" height="56" loading="lazy" />
+                        <div>
+                            <h3>@t.Name(lang)</h3>
+                            @if (c.Latest is not null)
+                            {
+                                <span class="chip">@Model.L("card.version", c.Latest.Version)</span>
+                            }
+                            else
+                            {
+                                <span class="chip chip-muted">@Model.L("card.noRelease")</span>
+                            }
+                        </div>
+                    </a>
+                    <p class="tagline">@t.Tagline(lang)</p>
+                    <div class="card-foot">
+                        @if (c.Latest is not null)
+                        {
+                            <a class="btn btn-primary" href="@CatalogService.DownloadPath(c.Latest)">@Model.L("card.download")</a>
+                            <span class="muted small">@Fmt.Size(c.Latest.SizeBytes)</span>
+                        }
+                        <a class="link" href="/@lang/tools/@t.AppId">@Model.L("card.details") &rarr;</a>
+                    </div>
+                </article>
+            }
+            <article class="card card-soon" aria-hidden="false">
+                <h3>@Model.L("card.soon.title")</h3>
+                <p class="muted">@Model.L("card.soon.text")</p>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="section trust" id="trust">
+    <div class="container">
+        <h2>@Model.L("trust.title")</h2>
+        <p class="muted section-sub">@Model.L("trust.sub")</p>
+        <div class="grid">
+            <div class="card"><div class="ico" aria-hidden="true">&#128273;</div><h3>@Model.L("trust.1.t")</h3><p class="muted">@Model.L("trust.1.d")</p></div>
+            <div class="card"><div class="ico" aria-hidden="true">&#128065;</div><h3>@Model.L("trust.2.t")</h3><p class="muted">@Model.L("trust.2.d")</p></div>
+            <div class="card"><div class="ico" aria-hidden="true">&#128230;</div><h3>@Model.L("trust.3.t")</h3><p class="muted">@Model.L("trust.3.d")</p></div>
+        </div>
+    </div>
+</section>

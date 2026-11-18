@@ -1,0 +1,32 @@
+@page "/{lang:regex(^(vi|en)$)}/changelog"
+@model ChangelogModel
+@{
+    var lang = Model.Lang;
+}
+
+<section class="section page-head">
+    <div class="container narrow">
+        <h1>@Model.L("changelog.title")</h1>
+        <p class="muted">@Model.L("changelog.sub")</p>
+        @if (Model.Entries.Count == 0)
+        {
+            <p class="notice">@Model.L("changelog.empty")</p>
+        }
+        <div class="timeline">
+            @foreach (var (tool, r, html) in Model.Entries)
+            {
+                <article class="card entry" style="--accent-tool:@tool.Meta.Accent">
+                    <header>
+                        <img class="tool-icon" src="/media/@tool.AppId/icon.png" alt="" width="40" height="40" loading="lazy" />
+                        <div>
+                            <h3><a href="/@lang/tools/@tool.AppId">@tool.Name(lang)</a> <span class="chip">v@(r.Version)</span>
+                                @if (r.Channel == "beta") { <span class="chip chip-muted">beta</span> }</h3>
+                            <span class="muted small">@Fmt.Date(r.PublishedAt, lang)</span>
+                        </div>
+                    </header>
+                    <div class="prose">@Html.Raw(html)</div>
+                </article>
+            }
+        </div>
+    </div>
+</section>

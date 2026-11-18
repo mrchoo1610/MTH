@@ -1,0 +1,229 @@
+{
+  "rules": [
+    {
+      "id": "user-temp",
+      "name": "Temp của người dùng",
+      "nameEn": "User temp files",
+      "description": "File tạm trong %TEMP% cũ hơn 24 giờ.",
+      "descriptionEn": "Temporary files in %TEMP% older than 24 hours.",
+      "category": "System",
+      "action": "DeleteFiles",
+      "paths": [
+        "%TEMP%"
+      ],
+      "minAgeHours": 24,
+      "requiresAdmin": false,
+      "defaultSelected": true
+    },
+    {
+      "id": "windows-temp",
+      "name": "Temp của Windows",
+      "nameEn": "Windows temp files",
+      "description": "File tạm trong C:\\Windows\\Temp cũ hơn 24 giờ.",
+      "descriptionEn": "Temporary files in C:\\Windows\\Temp older than 24 hours.",
+      "category": "System",
+      "action": "DeleteFiles",
+      "paths": [
+        "%WINDIR%\\Temp"
+      ],
+      "minAgeHours": 24,
+      "requiresAdmin": true,
+      "defaultSelected": true
+    },
+    {
+      "id": "wu-cache",
+      "name": "Cache Windows Update",
+      "nameEn": "Windows Update cache",
+      "description": "Gói cập nhật đã tải về trong SoftwareDistribution\\Download.",
+      "descriptionEn": "Downloaded update packages in SoftwareDistribution\\Download.",
+      "category": "System",
+      "action": "DeleteFiles",
+      "paths": [
+        "%WINDIR%\\SoftwareDistribution\\Download"
+      ],
+      "minAgeHours": 0,
+      "requiresAdmin": true,
+      "defaultSelected": false,
+      "warning": "Nên dừng dịch vụ Windows Update trước.",
+      "warningEn": "Stop the Windows Update service first."
+    },
+    {
+      "id": "recycle-bin",
+      "name": "Thùng rác",
+      "nameEn": "Recycle Bin",
+      "description": "Dọn sạch Thùng rác của tất cả ổ đĩa.",
+      "descriptionEn": "Empties the Recycle Bin on all drives.",
+      "category": "System",
+      "action": "EmptyRecycleBin",
+      "requiresAdmin": false,
+      "defaultSelected": false
+    },
+    {
+      "id": "crash-dumps",
+      "name": "Crash dumps",
+      "nameEn": "Crash dumps",
+      "description": "File dump khi ứng dụng bị lỗi (%LOCALAPPDATA%\\CrashDumps).",
+      "descriptionEn": "Dump files created when apps crash (%LOCALAPPDATA%\\CrashDumps).",
+      "category": "System",
+      "action": "DeleteFiles",
+      "paths": [
+        "%LOCALAPPDATA%\\CrashDumps"
+      ],
+      "minAgeHours": 0,
+      "requiresAdmin": false,
+      "defaultSelected": true
+    },
+    {
+      "id": "thumb-cache",
+      "name": "Cache hình thu nhỏ",
+      "nameEn": "Thumbnail cache",
+      "description": "thumbcache_*.db và iconcache_*.db của Explorer (Windows tự tạo lại).",
+      "descriptionEn": "Explorer thumbcache_*.db and iconcache_*.db (Windows recreates them).",
+      "category": "System",
+      "action": "DeleteFiles",
+      "paths": [
+        "%LOCALAPPDATA%\\Microsoft\\Windows\\Explorer"
+      ],
+      "namePatterns": [
+        "thumbcache_*.db",
+        "iconcache_*.db"
+      ],
+      "minAgeHours": 0,
+      "requiresAdmin": false,
+      "defaultSelected": false
+    },
+    {
+      "id": "chrome-cache",
+      "name": "Cache Google Chrome",
+      "nameEn": "Google Chrome cache",
+      "description": "Cache, Code Cache và GPUCache của mọi profile Chrome.",
+      "descriptionEn": "Cache, Code Cache and GPUCache of every Chrome profile.",
+      "category": "Browser",
+      "action": "DeleteFiles",
+      "paths": [
+        "%LOCALAPPDATA%\\Google\\Chrome\\User Data\\*\\Cache",
+        "%LOCALAPPDATA%\\Google\\Chrome\\User Data\\*\\Code Cache",
+        "%LOCALAPPDATA%\\Google\\Chrome\\User Data\\*\\GPUCache"
+      ],
+      "minAgeHours": 0,
+      "requiresAdmin": false,
+      "defaultSelected": true
+    },
+    {
+      "id": "edge-cache",
+      "name": "Cache Microsoft Edge",
+      "nameEn": "Microsoft Edge cache",
+      "description": "Cache, Code Cache và GPUCache của mọi profile Edge.",
+      "descriptionEn": "Cache, Code Cache and GPUCache of every Edge profile.",
+      "category": "Browser",
+      "action": "DeleteFiles",
+      "paths": [
+        "%LOCALAPPDATA%\\Microsoft\\Edge\\User Data\\*\\Cache",
+        "%LOCALAPPDATA%\\Microsoft\\Edge\\User Data\\*\\Code Cache",
+        "%LOCALAPPDATA%\\Microsoft\\Edge\\User Data\\*\\GPUCache"
+      ],
+      "minAgeHours": 0,
+      "requiresAdmin": false,
+      "defaultSelected": true
+    },
+    {
+      "id": "npm-cache",
+      "name": "Cache npm",
+      "nameEn": "npm cache",
+      "description": "Chạy 'npm cache clean --force'.",
+      "descriptionEn": "Runs 'npm cache clean --force'.",
+      "category": "Developer",
+      "action": "RunCommand",
+      "command": "npm",
+      "commandArgs": "cache clean --force",
+      "paths": [
+        "%LOCALAPPDATA%\\npm-cache"
+      ],
+      "requiresAdmin": false,
+      "defaultSelected": false
+    },
+    {
+      "id": "nuget-cache",
+      "name": "Cache NuGet",
+      "nameEn": "NuGet cache",
+      "description": "Chạy 'dotnet nuget locals all --clear'.",
+      "descriptionEn": "Runs 'dotnet nuget locals all --clear'.",
+      "category": "Developer",
+      "action": "RunCommand",
+      "command": "dotnet",
+      "commandArgs": "nuget locals all --clear",
+      "paths": [
+        "%USERPROFILE%\\.nuget\\packages"
+      ],
+      "requiresAdmin": false,
+      "defaultSelected": false,
+      "warning": "Lần build sau sẽ phải tải lại package.",
+      "warningEn": "The next build will have to download packages again."
+    },
+    {
+      "id": "pip-cache",
+      "name": "Cache pip",
+      "nameEn": "pip cache",
+      "description": "Chạy 'pip cache purge'.",
+      "descriptionEn": "Runs 'pip cache purge'.",
+      "category": "Developer",
+      "action": "RunCommand",
+      "command": "pip",
+      "commandArgs": "cache purge",
+      "paths": [
+        "%LOCALAPPDATA%\\pip\\Cache"
+      ],
+      "requiresAdmin": false,
+      "defaultSelected": false
+    },
+    {
+      "id": "yarn-cache",
+      "name": "Cache Yarn",
+      "nameEn": "Yarn cache",
+      "description": "Chạy 'yarn cache clean'.",
+      "descriptionEn": "Runs 'yarn cache clean'.",
+      "category": "Developer",
+      "action": "RunCommand",
+      "command": "yarn",
+      "commandArgs": "cache clean",
+      "paths": [
+        "%LOCALAPPDATA%\\Yarn\\Cache"
+      ],
+      "requiresAdmin": false,
+      "defaultSelected": false
+    },
+    {
+      "id": "gradle-cache",
+      "name": "Cache Gradle",
+      "nameEn": "Gradle cache",
+      "description": "File trong .gradle\\caches cũ hơn 30 ngày.",
+      "descriptionEn": "Files in .gradle\\caches older than 30 days.",
+      "category": "Developer",
+      "action": "DeleteFiles",
+      "paths": [
+        "%USERPROFILE%\\.gradle\\caches"
+      ],
+      "minAgeHours": 720,
+      "requiresAdmin": false,
+      "defaultSelected": false
+    },
+    {
+      "id": "docker-prune",
+      "name": "Docker prune",
+      "nameEn": "Docker prune",
+      "description": "Chạy 'docker system prune -f'.",
+      "descriptionEn": "Runs 'docker system prune -f'.",
+      "category": "Developer",
+      "action": "RunCommand",
+      "command": "docker",
+      "commandArgs": "system prune -f",
+      "paths": [
+        "%LOCALAPPDATA%\\Docker"
+      ],
+      "requiresAdmin": false,
+      "defaultSelected": false,
+      "warning": "Xóa container đã dừng, image và network không dùng. File vhdx KHÔNG tự nhỏ lại, xem README.",
+      "warningEn": "Removes stopped containers, unused images and networks. The vhdx file does NOT shrink by itself, see the README."
+    }
+  ]
+}

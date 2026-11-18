@@ -1,0 +1,37 @@
+name: minitools-hub
+services:
+  hub:
+    build:
+      context: ../..
+      dockerfile: MiniToolsHub/deploy/Dockerfile
+    # CI/CD sets HUB_IMAGE=ghcr.io/mrchoo1610/mth-hub:<sha>; local/manual builds fall back to minitools-hub:latest.
+    image: ${HUB_IMAGE:-minitools-hub:latest}
+    container_name: minitools-hub-app
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - ASPNETCORE_URLS=http://+:18473
+    volumes:
+      - ./data:/data
+    ports:
+      # localhost only, never exposed to the internet. Change HUB_HOST_PORT in .env if 18473 is taken.
+      - "127.0.0.1:${HUB_HOST_PORT:-18473}:18473"
+    networks:
+      - minitools-hub-net
+
+  cloudflared:
+    # Pin a concrete tag in .env (CLOUDFLARED_TAG) for real deployments.
+    image: cloudflare/cloudflared:${CLOUDFLARED_TAG:-latest}
+    container_name: minitools-hub-tunnel
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    restart: unless-stopped
+    depends_on:
+      - hub
+    networks:
+      - minitools-hub-net
+
+networks:
+  minitools-hub-net:
+    name: minitools-hub-net

@@ -1,0 +1,115 @@
+@page "/{lang:regex(^(vi|en)$)}/tools/{appId}"
+@model ToolModel
+@{
+    var lang = Model.Lang;
+    var t = Model.Card.Tool;
+    var latest = Model.Card.Latest;
+}
+
+<section class="tool-hero" style="--accent-tool:@t.Meta.Accent">
+    <div class="container">
+        <a class="back" href="/@lang#tools">&larr; @Model.L("tool.back")</a>
+        <div class="tool-head">
+            <img class="tool-icon big" src="/media/@t.AppId/icon.png" alt="" width="96" height="96" />
+            <div class="tool-head-text">
+                <h1>@t.Name(lang)</h1>
+                <p class="lead">@t.Tagline(lang)</p>
+                <div class="meta">
+                    @if (latest is not null)
+                    {
+                        <span class="chip">@Model.L("tool.version") @latest.Version</span>
+                        <span class="chip chip-muted">@Model.L("tool.released") @Fmt.Date(latest.PublishedAt, lang)</span>
+                        <span class="chip chip-muted">@Model.L("tool.size") @Fmt.Size(latest.SizeBytes)</span>
+                    }
+                    <span class="chip chip-muted">@Model.L("tool.downloads") @Fmt.Number(Model.Card.TotalDownloads)</span>
+                </div>
+            </div>
+        </div>
+
+        @if (latest is not null)
+        {
+            <div class="download-box">
+                <a class="btn btn-primary btn-lg" href="@CatalogService.DownloadPath(latest)">@Model.L("tool.download")</a>
+                <div class="sha">
+                    <span class="sha-label">@Model.L("tool.sha")</span>
+                    <code id="sha-value">@latest.Sha256</code>
+                    <button type="button" class="btn btn-small" data-copy="#sha-value" data-copied="@Model.L("tool.copied")">@Model.L("tool.copy")</button>
+                </div>
+            </div>
+        }
+        else
+        {
+            <p class="notice">@Model.L("tool.noRelease")</p>
+        }
+    </div>
+</section>
+
+@if (t.Meta.Shots.Count > 0)
+{
+    <section class="section tight">
+        <div class="container">
+            <h2>@Model.L("tool.screens")</h2>
+            <div class="shots" tabindex="0" aria-label="@Model.L("tool.screens")">
+                @foreach (var s in t.Meta.Shots)
+                {
+                    var file = s.File.GetValueOrDefault(lang) ?? s.File.Values.First();
+                    var alt = s.Alt.GetValueOrDefault(lang) ?? s.Alt.Values.FirstOrDefault() ?? "";
+                    <figure>
+                        <img src="/media/@t.AppId/shots/@file" alt="@alt" loading="lazy" />
+                        <figcaption>@alt</figcaption>
+                    </figure>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+<section class="section tight">
+    <div class="container two-col">
+        <div>
+            <h2>@Model.L("tool.features")</h2>
+            <ul class="features">
+                @foreach (var f in t.Features(lang))
+                {
+                    <li>@f</li>
+                }
+            </ul>
+        </div>
+        <div>
+            <h2>@Model.L("tool.requirements")</h2>
+            <div class="card"><p>@t.Requirements(lang)</p></div>
+        </div>
+    </div>
+</section>
+
+<section class="section tight">
+    <div class="container narrow">
+        <h2>@Model.L("tool.about")</h2>
+        <div class="prose">@Html.Raw(t.Description(lang))</div>
+    </div>
+</section>
+
+<section class="section tight">
+    <div class="container narrow">
+        <h2>@Model.L("tool.history")</h2>
+        @if (Model.History.Count == 0)
+        {
+            <p class="muted">@Model.L("tool.noRelease")</p>
+        }
+        @foreach (var (r, html) in Model.History)
+        {
+            <details class="acc" open="@(r == Model.History[0].Release)">
+                <summary>
+                    <strong>v@(r.Version)</strong>
+                    @if (r.Channel == "beta")
+                    {
+                        <span class="chip chip-muted">beta</span>
+                    }
+                    <span class="muted">@Fmt.Date(r.PublishedAt, lang) · @Fmt.Size(r.SizeBytes)</span>
+                    <a class="link small" href="@CatalogService.DownloadPath(r)">@Model.L("card.download")</a>
+                </summary>
+                <div class="prose">@Html.Raw(html)</div>
+            </details>
+        }
+    </div>
+</section>

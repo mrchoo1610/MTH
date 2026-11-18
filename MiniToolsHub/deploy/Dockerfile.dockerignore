@@ -1,0 +1,11 @@
+# Docker (BuildKit) reads "<Dockerfile>.dockerignore" next to the Dockerfile.
+# Whitelist: only what the image build needs.
+*
+!Shared/MiniTools.Contracts
+!MiniToolsHub/src/MiniToolsHub.Server
+!MiniToolsHub/content
+**/bin
+**/obj
+**/.env
+**/*.pem
+**/data

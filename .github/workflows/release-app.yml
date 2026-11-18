@@ -1,0 +1,136 @@
+# Release one mini tool by pushing a tag:
+#   git tag disk-cleaner-v1.3.0 && git push origin disk-cleaner-v1.3.0
+#   git tag taskbar-monitor-v1.1.0 && git push origin taskbar-monitor-v1.1.0
+# Requires release notes: release-notes/<app-id>/<version>.vi.md and .en.md
+#
+# Job 1 (GitHub Windows runner, environment "release"): test, build zip, SIGN manifest, create GitHub Release.
+# Job 2 (VPS self-hosted runner, environment "production"): upload zip + signed manifest to the hub via 127.0.0.1
+#        (bypasses Cloudflare: no 100 MB limit, works even if /api/admin is behind Cloudflare Access).
+name: Release app
+
+on:
+  push:
+    tags:
+      - "disk-cleaner-v*"
+      - "taskbar-monitor-v*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-sign:
+    name: Build, test & sign
+    runs-on: windows-latest
+    environment: release
+    permissions:
+      contents: write   # create the GitHub Release
+    outputs:
+      app_id: ${{ steps.meta.outputs.app_id }}
+      version: ${{ steps.meta.outputs.version }}
+      zip_name: ${{ steps.meta.outputs.zip_name }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Parse tag
+        id: meta
+        shell: pwsh
+        run: |
+          $tag = '${{ github.ref_name }}'
+          if ($tag -notmatch '^(disk-cleaner|taskbar-monitor)-v(\d+\.\d+\.\d+)$') { throw "Bad tag '$tag' (expected <app-id>-vX.Y.Z)" }
+          $appId = $Matches[1]; $version = $Matches[2]
+          $app = @{ 'disk-cleaner' = 'DiskCleaner'; 'taskbar-monitor' = 'TaskbarMonitor' }[$appId]
+          $csproj = if ($app -eq 'DiskCleaner') { 'DiskCleaner/src/DiskCleaner/DiskCleaner.csproj' } else { 'TaskbarMonitor/TaskbarMonitor.csproj' }
+          $projVersion = ([xml](Get-Content $csproj -Raw)).Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1
+          if ($projVersion -ne $version) { throw "Tag version $version != $csproj version $projVersion" }
+          foreach ($lang in 'vi', 'en') {
+            $f = "release-notes/$appId/$version.$lang.md"
+            if (-not (Test-Path $f)) { throw "Missing release notes: $f" }
+          }
+          "app=$app" >> $env:GITHUB_OUTPUT
+          "app_id=$appId" >> $env:GITHUB_OUTPUT
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "zip_name=$app-v$version-Portable.zip" >> $env:GITHUB_OUTPUT
+
+      - name: Test
+        run: dotnet test MiniTools.slnx -c Release
+
+      - name: Build zip & sign manifest
+        shell: pwsh
+        env:
+          SIGNING_KEY_PEM: ${{ secrets.SIGNING_KEY_PEM }}
+        run: |
+          if (-not $env:SIGNING_KEY_PEM) { throw 'Secret SIGNING_KEY_PEM is not set in environment "release".' }
+          $key = Join-Path $env:RUNNER_TEMP 'signing-key.pem'
+          [IO.File]::WriteAllText($key, $env:SIGNING_KEY_PEM.Replace('\n', "`n"))
+          try {
+            $appId = '${{ steps.meta.outputs.app_id }}'; $version = '${{ steps.meta.outputs.version }}'
+            $vi = Get-Content "release-notes/$appId/$version.vi.md" -Raw -Encoding UTF8
+            $en = Get-Content "release-notes/$appId/$version.en.md" -Raw -Encoding UTF8
+            # release.ps1 uses $ErrorActionPreference='Stop' and throws on any failure.
+            ./scripts/release.ps1 -App '${{ steps.meta.outputs.app }}' -DryRun -KeyPath $key -NotesVi $vi -NotesEn $en
+          } finally {
+            Remove-Item $key -Force -ErrorAction SilentlyContinue
+          }
+          New-Item -ItemType Directory -Force out | Out-Null
+          $base = "releases/${{ steps.meta.outputs.app }}-v$version-Portable"
+          Copy-Item "$base.zip", "$base.manifest.json" out/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-package
+          path: out/
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $appId = '${{ steps.meta.outputs.app_id }}'; $version = '${{ steps.meta.outputs.version }}'
+          $notes = (Get-Content "release-notes/$appId/$version.en.md" -Raw) + "`n`n---`n`n" + (Get-Content "release-notes/$appId/$version.vi.md" -Raw)
+          $notesFile = Join-Path $env:RUNNER_TEMP 'notes.md'
+          [IO.File]::WriteAllText($notesFile, $notes)
+          gh release create '${{ github.ref_name }}' (Get-ChildItem out/*).FullName --title "${{ steps.meta.outputs.app }} $version" --notes-file $notesFile
+
+  publish:
+    name: Upload to hub (VPS)
+    needs: build-sign
+    runs-on: [self-hosted, linux, mth-hub]
+    environment:
+      name: production
+      url: https://mth.mimehub.top/en/tools/${{ needs.build-sign.outputs.app_id }}
+    env:
+      DEPLOY_DIR: ${{ vars.HUB_DEPLOY_DIR || '/opt/minitools-hub/deploy' }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-package
+          path: pkg
+
+      - name: Upload
+        env:
+          HUB_ADMIN_TOKEN: ${{ secrets.HUB_ADMIN_TOKEN }}
+        run: |
+          set -euo pipefail
+          [ -n "${HUB_ADMIN_TOKEN:-}" ] || { echo "::error::Secret HUB_ADMIN_TOKEN is not set in environment 'production'"; exit 1; }
+          PORT=$(grep -E '^HUB_HOST_PORT=' "$DEPLOY_DIR/.env" 2>/dev/null | cut -d= -f2 || true); PORT=${PORT:-18473}
+          ZIP="pkg/${{ needs.build-sign.outputs.zip_name }}"
+          MANIFEST="${ZIP%.zip}.manifest.json"
+          CFG=$(mktemp); trap 'rm -f "$CFG"' EXIT
+          printf 'header = "Authorization: Bearer %s"\n' "$HUB_ADMIN_TOKEN" > "$CFG"
+          CODE=$(curl -sS -K "$CFG" -o resp.txt -w '%{http_code}' \
+            -F "manifest=<${MANIFEST};type=application/json" \
+            -F "file=@${ZIP};type=application/zip" \
+            "http://127.0.0.1:${PORT}/api/admin/releases")
+          cat resp.txt; echo
+          [ "$CODE" = "201" ] || { echo "::error::Upload failed: HTTP $CODE"; exit 1; }
+          curl -fsS "http://127.0.0.1:${PORT}/api/apps/${{ needs.build-sign.outputs.app_id }}/latest" | head -c 400; echo
