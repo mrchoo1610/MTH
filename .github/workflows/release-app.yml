@@ -109,7 +109,7 @@ jobs:
       name: production
       url: https://mth.mimehub.top/en/tools/${{ needs.build-sign.outputs.app_id }}
     env:
-      DEPLOY_DIR: ${{ vars.HUB_DEPLOY_DIR || '/opt/minitools-hub/deploy' }}
+      HOST_PORT: ${{ vars.HUB_HOST_PORT || '18473' }}
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -122,7 +122,7 @@ jobs:
         run: |
           set -euo pipefail
           [ -n "${HUB_ADMIN_TOKEN:-}" ] || { echo "::error::Secret HUB_ADMIN_TOKEN is not set in environment 'production'"; exit 1; }
-          PORT=$(grep -E '^HUB_HOST_PORT=' "$DEPLOY_DIR/.env" 2>/dev/null | cut -d= -f2 || true); PORT=${PORT:-18473}
+          PORT="$HOST_PORT"
           ZIP="pkg/${{ needs.build-sign.outputs.zip_name }}"
           MANIFEST="${ZIP%.zip}.manifest.json"
           CFG=$(mktemp); trap 'rm -f "$CFG"' EXIT

@@ -59,42 +59,31 @@ Rồi tự tạo các secret/variable như bảng dưới và commit `PublicKey.
 Deployment rule và Required reviewers bạn đặt tay trong Settings → Environments (workflow không đặt).
 
 - Nên bật **Required reviewers = chính bạn** cho `release`: mỗi lần phát hành phải bấm Approve, nên dù ai đó lấy được quyền push tag cũng không tự ký được bản mới.
-- Biến (tùy chọn) **Settings → Variables:** `HUB_DEPLOY_DIR` nếu thư mục deploy khác `/opt/minitools-hub/deploy`.
+- Biến (tùy chọn) **Settings → Variables:** `HUB_DEPLOY_DIR` nếu muốn thư mục deploy khác `~/minitools-hub`; `HUB_HOST_PORT` nếu 18473 bị trùng.
 
 > ⚠️ Private key nằm trong GitHub Secrets theo lựa chọn "CI làm hết". Ai chiếm được tài khoản GitHub của bạn có thể phát hành bản độc hại. Hãy bật 2FA cho tài khoản GitHub và Required reviewers cho environment `release`.
 
-### 1.4 VPS: Docker + thư mục deploy
-```bash
-sudo mkdir -p /opt/minitools-hub/deploy/data
-cd /opt/minitools-hub/deploy
-# lấy .env.example từ repo rồi điền: TUNNEL_TOKEN, Hub__AdminTokenSha256, Hub__PublicKeyPem (1 dòng, \n), HUB_HOST_PORT...
-curl -fsSL https://raw.githubusercontent.com/mrchoo1610/MTH/main/MiniToolsHub/deploy/.env.example -o .env
-nano .env && chmod 600 .env
-# kiểm tra port/tên không trùng
-ss -tlnp | grep 18473 ; docker ps --format '{{.Names}}' | grep minitools-hub
-```
+### 1.4 VPS: không cần chuẩn bị file nào
+Job deploy tự làm hết mỗi lần chạy:
+- thư mục deploy: `~/minitools-hub` của user chạy runner (đổi bằng repo variable `HUB_DEPLOY_DIR` nếu muốn);
+- **tự sinh `.env`** từ repo variables `HUB_PUBLIC_KEY_PEM`, `HUB_ADMIN_TOKEN_SHA256` (do bước 1.2 tạo) và `HUB_HOST_PORT` (mặc định 18473) — không sửa tay trên VPS;
+- kéo image từ GHCR, `docker compose up -d`, kiểm tra `http://127.0.0.1:18473/healthz`.
+
+Chỉ cần user chạy runner có quyền dùng Docker: `sudo usermod -aG docker <user>` rồi restart service runner.
 
 ### 1.5 VPS: self-hosted runner
-1. Tạo user riêng cho runner, cho vào nhóm `docker`, cấp quyền thư mục deploy:
-   ```bash
-   sudo useradd -m -s /bin/bash ghrunner
-   sudo usermod -aG docker ghrunner
-   sudo chown -R ghrunner:ghrunner /opt/minitools-hub
-   ```
-   (Nhóm `docker` gần như tương đương root trên VPS — đó là lý do phải chặn PR từ fork ở bước 1.1.)
-2. GitHub repo → **Settings → Actions → Runners → New self-hosted runner → Linux x64**, làm theo lệnh hiển thị (chạy bằng user `ghrunner`). Khi `config.sh` hỏi labels, nhập: **`mth-hub`**.
-3. Cài thành service để tự chạy lại sau reboot:
-   ```bash
-   sudo ./svc.sh install ghrunner && sudo ./svc.sh start
-   ```
-4. Runner cần: `docker`, `docker compose`, `curl`, `git` (để checkout).
+Runner cần label **`mth-hub`** (Settings → Actions → Runners → runner → Labels) và có `docker`, `docker compose`, `curl`, `git`.
+Nên chạy runner bằng user riêng (nhóm `docker` gần như tương đương root — đó là lý do bước 1.1 chặn PR từ fork).
 
-### 1.6 Cloudflare Tunnel
-Zero Trust → Networks → Tunnels → tunnel của bạn → **Public Hostname**: `mth.mimehub.top` → Service `http://minitools-hub-app:18473`.
-(Tùy chọn) Cloudflare Access chặn `https://mth.mimehub.top/api/admin/*` — CI không bị ảnh hưởng vì upload đi qua `127.0.0.1`.
+### 1.6 Domain (Cloudflare Tunnel)
+**Dùng tunnel đang có trên VPS (đơn giản nhất, không cần `TUNNEL_TOKEN`):** Zero Trust → Networks → Tunnels → tunnel hiện tại → **Public Hostname → Add**: `mth.mimehub.top` → Service **HTTP** `localhost:18473`.
+- Nếu cloudflared của bạn chạy trong Docker (không phải trên host), `localhost` là chính container đó: hãy nối container cloudflared vào network `minitools-hub-net` (`docker network connect minitools-hub-net <tên-container-cloudflared>`) rồi dùng Service `minitools-hub-app:18473`.
+- Nếu tunnel dùng `config.yml`: thêm `- hostname: mth.mimehub.top` / `service: http://localhost:18473` vào `ingress` (trước dòng 404) rồi restart cloudflared.
+
+**Hoặc tunnel riêng cho web này:** tạo tunnel mới, lấy chuỗi sau `--token` trong lệnh Docker mà Cloudflare hiển thị, lưu vào secret **`TUNNEL_TOKEN`** của environment `production`. Job deploy sẽ tự bật container `minitools-hub-tunnel` (Public Hostname trỏ `minitools-hub-app:18473`).
 
 ### 1.7 Lần deploy đầu
-Push lên `main` (hoặc **Actions → Deploy hub → Run workflow**). Sau khi xong: `https://mth.mimehub.top/healthz` trả `ok`.
+Actions → **Deploy hub** → Run workflow (hoặc push lên `main`). Xong: `https://mth.mimehub.top/healthz` trả `ok`.
 
 ---
 

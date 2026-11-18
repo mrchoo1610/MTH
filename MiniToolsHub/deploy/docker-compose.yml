@@ -20,7 +20,9 @@ services:
       - minitools-hub-net
 
   cloudflared:
-    # Pin a concrete tag in .env (CLOUDFLARED_TAG) for real deployments.
+    # OPTIONAL. Only starts with `--profile tunnel` (CI enables it when the TUNNEL_TOKEN secret is set).
+    # If the VPS already runs a Cloudflare Tunnel, skip this and route mth.mimehub.top -> http://localhost:18473 there.
+    profiles: ["tunnel"]
     image: cloudflare/cloudflared:${CLOUDFLARED_TAG:-latest}
     container_name: minitools-hub-tunnel
     command: tunnel --no-autoupdate run
