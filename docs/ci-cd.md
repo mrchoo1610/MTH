@@ -27,22 +27,36 @@ Upload bản phát hành đi thẳng vào `127.0.0.1` trên VPS, **không qua Cl
 - **Settings → Actions → General → Workflow permissions:** để "Read repository contents" (các workflow tự xin quyền cần thiết).
 - (Khuyến nghị) **Settings → Branches:** bảo vệ `main` (bắt buộc CI pass trước khi merge).
 
-### 1.2 Khóa ký và token (trên máy dev Windows)
+### 1.2 Khóa ký và token — tạo bằng GitHub Actions (không cần chạy script trên máy)
+1. Tạo **fine-grained PAT** (GitHub → Settings → Developer settings → Fine-grained tokens): chỉ repo `mrchoo1610/MTH`, quyền **Secrets**, **Variables**, **Environments**, **Administration**: *Read and write*. Hạn ngắn (vd 7 ngày) là đủ.
+2. Lưu PAT vào repo secret **`ADMIN_PAT`** (Settings → Secrets and variables → Actions → New repository secret).
+3. **Actions → "Bootstrap signing key & admin token" → Run workflow** (để các ô rotate trống). Workflow [`bootstrap-signing.yml`](../.github/workflows/bootstrap-signing.yml) sẽ:
+   - tạo environment `release` và `production` nếu chưa có;
+   - tạo khóa ECDSA → secret `SIGNING_KEY_PEM` (env `release`), public key → variable `HUB_PUBLIC_KEY_PEM`, và **commit `Shared/MiniTools.Updater/PublicKey.cs`** lên `main`;
+   - tạo admin token → secret `HUB_ADMIN_TOKEN` (env `production`), SHA-256 → variable `HUB_ADMIN_TOKEN_SHA256`;
+   - in ra **Job summary** 2 dòng `Hub__PublicKeyPem=…` và `Hub__AdminTokenSha256=…` để dán vào `.env` trên VPS (cả hai đều là giá trị công khai).
+4. Chạy lại lần nữa là an toàn: cái gì đã có thì giữ nguyên. Chỉ tick **rotate_signing_key** khi thật sự cần — app đã cài sẽ **không nhận** bản ký bằng khóa mới (phải tải bản mới bằng tay).
+5. Xong thì có thể xóa secret `ADMIN_PAT` / thu hồi PAT.
+
+> ⚠️ Private key **chỉ** nằm trong GitHub Secrets (không đọc lại được, không có bản sao). Nếu xóa nhầm secret, các app đã phát hành sẽ không cập nhật được nữa. Muốn có bản sao lưu offline thì dùng cách thủ công bên dưới thay vì workflow.
+
+<details><summary>Cách thủ công (trên máy dev Windows, có bản sao lưu private key)</summary>
+
 ```powershell
 ./scripts/new-signing-key.ps1
-```
-- Tạo `%USERPROFILE%\.minitools\signing-key.pem` (private) và ghi public key vào `Shared/MiniTools.Updater/PublicKey.cs` → **commit file PublicKey.cs**.
-- Tạo admin token + SHA-256 của nó:
-```powershell
 dotnet run --project scripts/tools/ManifestTool -- token
 ```
+Rồi tự tạo các secret/variable như bảng dưới và commit `PublicKey.cs`.
+</details>
 
-### 1.3 Environments + secrets (Settings → Environments)
+### 1.3 Environments + secrets (workflow ở 1.2 tự tạo; bảng để tham khảo)
 
 | Environment | Deployment rule | Secret | Giá trị |
 |---|---|---|---|
-| `release` | Tags: `disk-cleaner-v*`, `taskbar-monitor-v*` | `SIGNING_KEY_PEM` | Nội dung file `signing-key.pem` (dán nguyên văn nhiều dòng) |
+| `release` | Tags: `disk-cleaner-v*`, `taskbar-monitor-v*` | `SIGNING_KEY_PEM` | Private key PEM |
 | `production` | Branch `main` + các tag trên | `HUB_ADMIN_TOKEN` | Admin token (bản gốc, không phải SHA-256) |
+
+Deployment rule và Required reviewers bạn đặt tay trong Settings → Environments (workflow không đặt).
 
 - Nên bật **Required reviewers = chính bạn** cho `release`: mỗi lần phát hành phải bấm Approve, nên dù ai đó lấy được quyền push tag cũng không tự ký được bản mới.
 - Biến (tùy chọn) **Settings → Variables:** `HUB_DEPLOY_DIR` nếu thư mục deploy khác `/opt/minitools-hub/deploy`.
