@@ -50,6 +50,16 @@ public class RuleValidatorTests
         Assert.Single(result.Errors);
     }
 
+    [Fact]
+    public void RootOfCurrentDrive_IsRejected()
+    {
+        // Regression: "X:\" used to be split to "X:" and resolved drive-relative to the current directory,
+        // so the root of the drive the process runs from was NOT recognised as a drive root.
+        var root = Path.GetPathRoot(Environment.CurrentDirectory)!;
+        var result = RuleValidator.ValidateAll([Rule("bad", root)], Env);
+        Assert.Empty(result.Valid);
+    }
+
     [Theory]
     [InlineData(@"relative\path")]
     [InlineData(@"\\server\share\x")]

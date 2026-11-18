@@ -80,6 +80,9 @@ public static class RuleValidator
 
         // Thay wildcard bằng tên giả để kiểm tra phần còn lại.
         var concrete = string.Join("\\", segments.Select(s => s.Contains('*') || s.Contains('?') ? "_wild_" : s));
+        // "C:\" splits to just "C:", which Path.GetFullPath treats as drive-RELATIVE (the current dir on C:).
+        // Keep the root explicit so a bare drive root is always recognised (and rejected).
+        if (concrete.Length == 2 && concrete[1] == ':') concrete += "\\";
         var norm = PathHelper.TryNormalize(concrete);
         if (norm == null) return $"Path '{pattern}' không chuẩn hóa được";
 
