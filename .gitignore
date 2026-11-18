@@ -8,7 +8,7 @@ publish/
 
 # Scratch / local data
 tmp/
-data/
+MiniToolsHub/deploy/data/
 *.log
 
 # Secrets: never commit
