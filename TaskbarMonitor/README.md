@@ -46,7 +46,7 @@ A lightweight Windows desktop widget that displays real-time hardware telemetry 
 
 ## Auto-update (v1.1)
 
-* Tray menu has **"Kiểm tra cập nhật…"**; the app also checks in the background 10 seconds after start (at most once every 24 hours) and shows a tray balloon when a new version exists.
+* Tray menu has **"Check for updates…"**; the app also checks in the background 10 seconds after start (at most once every 24 hours) and shows a tray balloon when a new version exists.
 * Updates are installed only if the release **signature (ECDSA P-256) and SHA-256 are valid**. `MiniTools.UpdateHelper.exe` then replaces the files (with backup + rollback; your `settings.json` is never deleted) and restarts the app.
 * Hub URL: `UpdateConfig.HubBaseUrl` in `Services/UpdateConfig.cs` (default `https://mth.mimehub.top`, app id `taskbar-monitor`).
 * The public key lives in `Shared/MiniTools.Updater/PublicKey.cs`. While it is the empty placeholder, **updates are disabled** until `scripts/new-signing-key.ps1` is run and the app is rebuilt.

@@ -27,6 +27,7 @@ public partial class MainWindow : Window
     private WpfPoint _dragStartPoint;
     private bool _isDragging;
 
+    private static readonly System.Windows.Media.FontFamily UniformFont = new("Consolas, Segoe UI");
     private static readonly WpfBrush NormalBrush = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xF8, 0xFA, 0xFC));
     private static readonly WpfBrush WarningBrush = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xFB, 0xBF, 0x24)); // Amber
     private static readonly WpfBrush DangerBrush = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xEF, 0x44, 0x44));  // Red
@@ -149,6 +150,25 @@ public partial class MainWindow : Window
                 label.ToolTip = fullName;
                 label.MinWidth = vertical ? 16 : 0; // fits "VR" so all values line up
                 label.Margin = vertical ? new Thickness(0, 0, 2, 0) : new Thickness(0, 0, 4, 0);
+            }
+
+            // Vertical: one font, size and weight for label, value and temperature so the column reads uniformly.
+            // Horizontal: clear the overrides so the XAML styles apply again.
+            foreach (var child in panel.Children)
+            {
+                if (child is not TextBlock tb) continue;
+                if (vertical)
+                {
+                    tb.FontFamily = UniformFont;
+                    tb.FontSize = 11;
+                    tb.FontWeight = FontWeights.SemiBold;
+                }
+                else
+                {
+                    tb.ClearValue(TextBlock.FontFamilyProperty);
+                    tb.ClearValue(TextBlock.FontSizeProperty);
+                    tb.ClearValue(TextBlock.FontWeightProperty);
+                }
             }
         }
 
@@ -562,7 +582,7 @@ public partial class MainWindow : Window
                 SyncSettingsUi();
             });
             trayMenu.Items.Add(new WinForms.ToolStripSeparator());
-            trayMenu.Items.Add("Kiểm tra cập nhật…", null, async (s, e) => await CheckForUpdatesAsync());
+            trayMenu.Items.Add("Check for updates…", null, async (s, e) => await CheckForUpdatesAsync());
             trayMenu.Items.Add("Exit", null, (s, e) => WpfApp.Current.Shutdown());
 
             _notifyIcon.ContextMenuStrip = trayMenu;
@@ -590,7 +610,7 @@ public partial class MainWindow : Window
             _updates.UpdateFound += m => Dispatcher.BeginInvoke(() =>
             {
                 _pendingUpdate = m;
-                ShowTrayMessage($"Có bản mới {m.Version}. Bấm vào đây để xem.", WinForms.ToolTipIcon.Info);
+                ShowTrayMessage($"Version {m.Version} is available. Click here for details.", WinForms.ToolTipIcon.Info);
             });
             _updates.StartAutoCheck();
             Closed += (_, _) => _updates?.Dispose();
@@ -621,15 +641,15 @@ public partial class MainWindow : Window
                     break;
                 case MiniTools.Updater.UpdateCheckStatus.Disabled:
                     _pendingUpdate = null;
-                    ShowTrayMessage("Bản này chưa bật cập nhật tự động (chưa có khóa xác thực chữ ký). Hãy tải bản mới thủ công.", WinForms.ToolTipIcon.Warning);
+                    ShowTrayMessage("Automatic updates are not enabled in this build (no signing key). Please download the new version manually.", WinForms.ToolTipIcon.Warning);
                     break;
                 case MiniTools.Updater.UpdateCheckStatus.Failed:
                     _pendingUpdate = null;
-                    ShowTrayMessage("Không kiểm tra được cập nhật. Hãy kiểm tra kết nối mạng rồi thử lại.", WinForms.ToolTipIcon.Error);
+                    ShowTrayMessage("Could not check for updates. Check your network connection and try again.", WinForms.ToolTipIcon.Error);
                     break;
                 default:
                     _pendingUpdate = null;
-                    ShowTrayMessage($"Bạn đang dùng bản mới nhất ({AppUpdateService.CurrentVersionText}).", WinForms.ToolTipIcon.Info);
+                    ShowTrayMessage($"You are on the latest version ({AppUpdateService.CurrentVersionText}).", WinForms.ToolTipIcon.Info);
                     break;
             }
         }

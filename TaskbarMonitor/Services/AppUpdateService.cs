@@ -64,7 +64,7 @@ public sealed class AppUpdateService : IDisposable
     }
 
     public void ShowDialog(System.Windows.Window? owner, ReleaseManifest m) =>
-        UpdateDialog.ShowFor(owner, Client, m, UpdateStrings.Vi, "vi", Store);
+        UpdateDialog.ShowFor(owner, Client, m, UpdateStrings.En, "en", Store);
 
     public void Dispose()
     {
