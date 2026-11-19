@@ -28,6 +28,26 @@ public static class TaskbarHelper
         return (left, top);
     }
 
+    /// <summary>
+    /// Dock position for the vertical layout: flush against the right edge of the work area,
+    /// in the lower-middle band (clear of chat input boxes and the taskbar).
+    /// </summary>
+    public static (double Left, double Top) GetRightEdgeDockPosition(double windowWidth, double windowHeight)
+    {
+        var workArea = SystemParameters.WorkArea;
+
+        double width = windowWidth > 20 ? windowWidth : 130;
+        double height = windowHeight > 20 ? windowHeight : 120;
+
+        double left = workArea.Right - width - 2;
+        double top = workArea.Top + workArea.Height * 0.70 - height / 2.0;
+
+        left = Math.Clamp(left, workArea.Left, workArea.Right - width);
+        top = Math.Clamp(top, workArea.Top + 4, workArea.Bottom - height - 4);
+
+        return (left, top);
+    }
+
     public static (double Left, double Top) GetDefaultPosition(double windowWidth, double windowHeight)
     {
         return GetTaskbarDockPosition(windowWidth, windowHeight);

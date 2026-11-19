@@ -12,6 +12,11 @@ public class AppSettings
 
     public double WindowLeft { get; set; } = -1;
     public double WindowTop { get; set; } = -1;
+    /// <summary>true = vertical column docked to the right screen edge; false = horizontal bar above the taskbar.</summary>
+    public bool VerticalLayout { get; set; } = true;
+    /// <summary>Bumped when the default dock position changes so old saved positions get re-snapped once.</summary>
+    public int LayoutVersion { get; set; } = 0;
+    public const int CurrentLayoutVersion = 2;
     public bool IsPositionLocked { get; set; } = false;
     public double WindowOpacity { get; set; } = 0.90;
 

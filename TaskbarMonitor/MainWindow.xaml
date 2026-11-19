@@ -12,6 +12,7 @@
         ResizeMode="NoResize"
         Loaded="Window_Loaded"
         Closing="Window_Closing"
+        SizeChanged="Window_SizeChanged"
         MouseLeftButtonDown="Window_MouseLeftButtonDown"
         MouseLeftButtonUp="Window_MouseLeftButtonUp"
         MouseRightButtonUp="Window_MouseRightButtonUp"
@@ -92,9 +93,9 @@
                 Cursor="Hand"
                 ToolTip="Left-Click: Telemetry Flyout • Right-Click: Settings">
 
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+            <StackPanel x:Name="MetricsStack" Orientation="Horizontal" VerticalAlignment="Center">
                 <!-- Tiny Drag Indicator -->
-                <TextBlock Text="⋮" Foreground="#475569" FontSize="12" Margin="0,0,5,0" VerticalAlignment="Center" ToolTip="Drag to move"/>
+                <TextBlock x:Name="DragGrip" Text="⋮" Foreground="#475569" FontSize="12" Margin="0,0,5,0" VerticalAlignment="Center" ToolTip="Drag to move"/>
 
                 <!-- CPU -->
                 <StackPanel x:Name="CpuPanel" Orientation="Horizontal" VerticalAlignment="Center">
@@ -166,7 +167,7 @@
                         <StackPanel>
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="HARDWARE TELEMETRY" FontWeight="Bold" FontSize="11" Foreground="#94A3B8"/>
-                                <TextBlock Text="v1.1.0" FontSize="9" Foreground="#64748B" Margin="6,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                                <TextBlock Text="v1.2.0" FontSize="9" Foreground="#64748B" Margin="6,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold"/>
                             </StackPanel>
                             <TextBlock x:Name="TxtGpuModel" Text="NVIDIA GeForce" FontSize="12" FontWeight="SemiBold" Foreground="#34D399" TextTrimming="CharacterEllipsis"/>
                             <TextBlock x:Name="TxtCpuModel" Text="CPU Processor" FontSize="11" Foreground="#64748B" TextTrimming="CharacterEllipsis"/>
@@ -262,7 +263,7 @@
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="⚙" FontSize="13" Foreground="#38BDF8" Margin="0,0,6,0" VerticalAlignment="Center"/>
                             <TextBlock Text="SETTINGS" FontWeight="Bold" FontSize="12" Foreground="#F1F5F9" VerticalAlignment="Center"/>
-                            <TextBlock Text="v1.1.0" FontSize="10" Foreground="#64748B" Margin="8,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                            <TextBlock Text="v1.2.0" FontSize="10" Foreground="#64748B" Margin="8,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold"/>
                         </StackPanel>
                         <TextBlock Text="✕" FontSize="12" Foreground="#64748B" HorizontalAlignment="Right" Cursor="Hand"
                                    MouseLeftButtonUp="BtnCloseSettings_Click" ToolTip="Close"/>
@@ -297,6 +298,7 @@
 
                     <!-- Behavior Section -->
                     <TextBlock Text="SYSTEM &amp; BEHAVIOR" Style="{StaticResource SettingSectionTitle}"/>
+                    <CheckBox x:Name="ChkVertical" Content="↕ Vertical Layout (Right Edge)" Style="{StaticResource SettingCheckBox}" Click="ChkVertical_Click"/>
                     <CheckBox x:Name="ChkLockPosition" Content="🔒 Lock Position (Prevent Drag)" Style="{StaticResource SettingCheckBox}" Click="ChkLockPosition_Click"/>
                     <CheckBox x:Name="ChkAutoStart" Content="🚀 Start with Windows" Style="{StaticResource SettingCheckBox}" Click="ChkAutoStart_Click"/>
 
@@ -306,7 +308,7 @@
                             <ColumnDefinition Width="6"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Button Grid.Column="0" Content="📌 Snap to Taskbar" Style="{StaticResource ActionBtn}" Click="BtnSnapTaskbar_Click"/>
+                        <Button Grid.Column="0" Content="📌 Snap to Dock" Style="{StaticResource ActionBtn}" Click="BtnSnapTaskbar_Click"/>
                         <Button Grid.Column="2" Content="🛡 Run as Admin" Style="{StaticResource ActionBtn}" Click="BtnRunAsAdmin_Click"/>
                     </Grid>
 

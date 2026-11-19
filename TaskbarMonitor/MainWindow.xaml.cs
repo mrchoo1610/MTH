@@ -52,7 +52,13 @@ public partial class MainWindow : Window
         double w = ActualWidth > 50 ? ActualWidth : 420;
         double h = ActualHeight > 10 ? ActualHeight : 30;
 
-        if (_settings.WindowLeft >= 0 && _settings.WindowTop >= 0 &&
+        bool layoutOutdated = _settings.LayoutVersion < AppSettings.CurrentLayoutVersion;
+        if (layoutOutdated)
+        {
+            _settings.LayoutVersion = AppSettings.CurrentLayoutVersion;
+        }
+
+        if (!layoutOutdated && _settings.WindowLeft >= 0 && _settings.WindowTop >= 0 &&
             TaskbarHelper.IsPositionValid(_settings.WindowLeft, _settings.WindowTop, w, h))
         {
             Left = _settings.WindowLeft;
@@ -65,6 +71,23 @@ public partial class MainWindow : Window
 
         _monitor.Start(_settings.RefreshIntervalMs);
         Logger.Log($"Monitor started. Placed at Left={Left}, Top={Top}, Width={ActualWidth}, Height={ActualHeight}");
+    }
+
+    /// <summary>
+    /// In vertical mode the widget hugs the right screen edge; when its width changes
+    /// (values get longer/shorter) keep the right edge pinned instead of growing off-screen.
+    /// </summary>
+    private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (!_settings.VerticalLayout || !e.WidthChanged || e.PreviousSize.Width <= 0) return;
+
+        var workRight = SystemParameters.WorkArea.Right;
+        double oldRight = Left + e.PreviousSize.Width;
+        if (oldRight >= workRight - 12)
+        {
+            Left = workRight - e.NewSize.Width - 2;
+            _settings.WindowLeft = Left;
+        }
     }
 
     private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -90,6 +113,55 @@ public partial class MainWindow : Window
     {
         Opacity = _settings.WindowOpacity;
         UpdateVisibility();
+        ApplyOrientation();
+    }
+
+    /// <summary>Switches the main bar between a horizontal strip and a vertical column.</summary>
+    private void ApplyOrientation()
+    {
+        bool vertical = _settings.VerticalLayout;
+
+        MetricsStack.Orientation = vertical ? System.Windows.Controls.Orientation.Vertical : System.Windows.Controls.Orientation.Horizontal;
+        MainBorder.Padding = vertical ? new Thickness(5, 2, 5, 4) : new Thickness(8, 4, 8, 4);
+
+        DragGrip.Text = vertical ? "⋯" : "⋮";
+        DragGrip.HorizontalAlignment = vertical ? System.Windows.HorizontalAlignment.Center : System.Windows.HorizontalAlignment.Left;
+        DragGrip.Margin = vertical ? new Thickness(0, -4, 0, 0) : new Thickness(0, 0, 5, 0);
+
+        foreach (var div in new[] { DivRam, DivGpu, DivVram, DivDisk })
+        {
+            div.Width = vertical ? double.NaN : 1;
+            div.Height = vertical ? 1 : 12;
+            div.Margin = vertical ? new Thickness(0, 2, 0, 2) : new Thickness(7, 0, 7, 0);
+            div.HorizontalAlignment = vertical ? System.Windows.HorizontalAlignment.Stretch : System.Windows.HorizontalAlignment.Left;
+        }
+
+        // Align values into a column by giving every label the same width.
+        foreach (var panel in new[] { CpuPanel, RamPanel, GpuPanel, VramPanel, DiskPanel })
+        {
+            if (panel.Children.Count > 0 && panel.Children[0] is TextBlock label)
+            {
+                // Vertical: short labels (C/R/G/VR/D); full names live in the details flyout.
+                label.Tag ??= label.Text;
+                var fullName = (string)label.Tag;
+                var shortName = fullName == "VRAM" ? "VR" : fullName.Substring(0, 1);
+                label.Text = vertical ? shortName : fullName;
+                label.ToolTip = fullName;
+                label.MinWidth = vertical ? 16 : 0; // fits "VR" so all values line up
+                label.Margin = vertical ? new Thickness(0, 0, 2, 0) : new Thickness(0, 0, 4, 0);
+            }
+        }
+
+        TxtCpuTemp.Margin = TxtGpuTemp.Margin = vertical ? new Thickness(0, 0, 0, 0) : new Thickness(4, 0, 0, 0);
+
+        // Popups open beside the column (left) or above the strip (top).
+        var placement = vertical ? System.Windows.Controls.Primitives.PlacementMode.Left : System.Windows.Controls.Primitives.PlacementMode.Top;
+        foreach (var popup in new[] { FlyoutPopup, SettingsPopup })
+        {
+            popup.Placement = placement;
+            popup.VerticalOffset = vertical ? 0 : -6;
+            popup.HorizontalOffset = vertical ? -6 : 0;
+        }
     }
 
     private void SyncSettingsUi()
@@ -100,6 +172,7 @@ public partial class MainWindow : Window
         ChkVram.IsChecked = _settings.ShowVram;
         ChkDisk.IsChecked = _settings.ShowDisk;
 
+        ChkVertical.IsChecked = _settings.VerticalLayout;
         ChkLockPosition.IsChecked = _settings.IsPositionLocked;
         ChkAutoStart.IsChecked = _settings.AutoStartWithWindows;
     }
@@ -124,9 +197,11 @@ public partial class MainWindow : Window
     private void SnapToTaskbar()
     {
         UpdateLayout();
-        double w = ActualWidth > 50 ? ActualWidth : 420;
+        double w = ActualWidth > 20 ? ActualWidth : 420;
         double h = ActualHeight > 10 ? ActualHeight : 30;
-        var (left, top) = TaskbarHelper.GetTaskbarDockPosition(w, h);
+        var (left, top) = _settings.VerticalLayout
+            ? TaskbarHelper.GetRightEdgeDockPosition(w, h)
+            : TaskbarHelper.GetTaskbarDockPosition(w, h);
         Left = left;
         Top = top;
         _settings.WindowLeft = Left;
@@ -158,12 +233,12 @@ public partial class MainWindow : Window
         Dispatcher.InvokeAsync(() =>
         {
             // 1. CPU
-            TxtCpuUsage.Text = $"{s.CpuUsage:0}%";
+            TxtCpuUsage.Text = $"{s.CpuUsage,3:0}%";
             TxtCpuUsage.Foreground = s.CpuUsage >= 90 ? DangerBrush : (s.CpuUsage >= 75 ? WarningBrush : NormalBrush);
 
             if (s.CpuTemp.HasValue && s.CpuTemp.Value > 0)
             {
-                TxtCpuTemp.Text = $"{s.CpuTemp.Value:0}°C";
+                TxtCpuTemp.Text = _settings.VerticalLayout ? $"{s.CpuTemp.Value,3:0}°" : $"{s.CpuTemp.Value,3:0}°C";
                 TxtCpuTemp.Foreground = s.CpuTemp.Value >= 85 ? DangerBrush : (s.CpuTemp.Value >= 75 ? WarningBrush : new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x94, 0xA3, 0xB8)));
             }
             else
@@ -172,16 +247,16 @@ public partial class MainWindow : Window
             }
 
             // 2. RAM
-            TxtRamUsage.Text = $"{s.RamUsedGb:0.0}G ({s.RamPercent:0}%)";
+            TxtRamUsage.Text = _settings.VerticalLayout ? $"{s.RamPercent,3:0}%" : $"{s.RamUsedGb,4:0.0}G ({s.RamPercent,3:0}%)";
             TxtRamUsage.Foreground = s.RamPercent >= 90 ? DangerBrush : (s.RamPercent >= 80 ? WarningBrush : NormalBrush);
 
             // 3. GPU
-            TxtGpuUsage.Text = $"{s.GpuUsage:0}%";
+            TxtGpuUsage.Text = $"{s.GpuUsage,3:0}%";
             TxtGpuUsage.Foreground = s.GpuUsage >= 90 ? DangerBrush : (s.GpuUsage >= 80 ? WarningBrush : NormalBrush);
 
             if (s.GpuTemp.HasValue && s.GpuTemp.Value > 0)
             {
-                TxtGpuTemp.Text = $"{s.GpuTemp.Value:0}°C";
+                TxtGpuTemp.Text = _settings.VerticalLayout ? $"{s.GpuTemp.Value,3:0}°" : $"{s.GpuTemp.Value,3:0}°C";
                 TxtGpuTemp.Foreground = s.GpuTemp.Value >= 83 ? DangerBrush : (s.GpuTemp.Value >= 75 ? WarningBrush : new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x94, 0xA3, 0xB8)));
             }
             else
@@ -190,24 +265,32 @@ public partial class MainWindow : Window
             }
 
             // 4. VRAM
-            if (s.VramTotalGb > 0 && s.VramTotalGb != 100f)
+            if (_settings.VerticalLayout)
             {
-                TxtVramUsage.Text = $"{s.VramUsedGb:0.0}/{s.VramTotalGb:0.0}G ({s.VramPercent:0}%)";
+                TxtVramUsage.Text = $"{s.VramPercent,3:0}%";
+            }
+            else if (s.VramTotalGb > 0 && s.VramTotalGb != 100f)
+            {
+                TxtVramUsage.Text = $"{s.VramUsedGb,4:0.0}/{s.VramTotalGb:0.0}G ({s.VramPercent,3:0}%)";
             }
             else
             {
-                TxtVramUsage.Text = $"{s.VramUsedGb:0}%";
+                TxtVramUsage.Text = $"{s.VramUsedGb,3:0}%";
             }
             TxtVramUsage.Foreground = s.VramPercent >= 90 ? DangerBrush : (s.VramPercent >= 80 ? WarningBrush : NormalBrush);
 
             // 5. Disk Speed
-            if (s.DiskTotalSpeedMb >= 1.0)
+            if (_settings.VerticalLayout)
             {
-                TxtDiskSpeed.Text = $"{s.DiskTotalSpeedMb:0.0} MB/s";
+                TxtDiskSpeed.Text = s.DiskTotalSpeedMb >= 1.0 ? (s.DiskTotalSpeedMb >= 999.5 ? $"{s.DiskTotalSpeedMb / 1024.0:0.0}G" : $"{s.DiskTotalSpeedMb,3:0}M") : "  0M";
+            }
+            else if (s.DiskTotalSpeedMb >= 1.0)
+            {
+                TxtDiskSpeed.Text = $"{s.DiskTotalSpeedMb,6:0.0} MB/s";
             }
             else
             {
-                TxtDiskSpeed.Text = "0 MB/s";
+                TxtDiskSpeed.Text = "   0.0 MB/s";
             }
 
             // Update Flyout if open
@@ -355,6 +438,15 @@ public partial class MainWindow : Window
         }
     }
 
+    private void ChkVertical_Click(object sender, RoutedEventArgs e)
+    {
+        _settings.VerticalLayout = ChkVertical.IsChecked == true;
+        SettingsPopup.IsOpen = false;
+        ApplyOrientation();
+        OnSnapshotUpdated(_monitor.CurrentSnapshot); // re-render values in the new (short/long) format
+        Dispatcher.InvokeAsync(SnapToTaskbar, System.Windows.Threading.DispatcherPriority.Background); // snap after re-measure
+    }
+
     private void ChkLockPosition_Click(object sender, RoutedEventArgs e)
     {
         _settings.IsPositionLocked = ChkLockPosition.IsChecked == true;
@@ -460,7 +552,7 @@ public partial class MainWindow : Window
                     Activate();
                 }
             });
-            trayMenu.Items.Add("Snap to Taskbar (Bottom-Right)", null, (s, e) => SnapToTaskbar());
+            trayMenu.Items.Add("Snap to Dock", null, (s, e) => SnapToTaskbar());
             trayMenu.Items.Add("Center on Screen", null, (s, e) => CenterOnScreen());
             trayMenu.Items.Add("Settings", null, (s, e) =>
             {
